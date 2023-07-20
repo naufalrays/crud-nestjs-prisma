@@ -70,3 +70,172 @@ yarn prisma db push
 ```cmd
 yarn add @prisma/client
 ```
+
+9. Create prisma module :
+
+```cmd
+nest g mo prisma
+```
+
+10. Create service prisma :
+
+```cmd
+nest g s prisma
+```
+
+11. Use Prisma Client in NestJS service (prisma.service.ts) :
+
+```typescript
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
+
+@Injectable()
+export class PrismaService extends PrismaClient implements OnModuleInit {
+  async onModuleInit() {
+    await this.$connect();
+  }
+}
+```
+
+12. To access the Prisma Service secara globally, add PrismaService on exports, and add the Modul globally :
+
+```typescript
+@Global()
+@Module({
+	providers: [PrismaService],
+	exports: [PrismaService],
+})
+```
+
+### Create CRUD user :
+
+#### Read :
+
+1. Create prisma module, controller, service for user:
+
+```cmd
+nest g mo user
+nest g co user
+nest g s user
+```
+
+2. In user.service.ts add :
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+@Injectable()
+export class UserService {
+  constructor(private dbService: PrismaService) {}
+
+  async findAll() {
+    return await this.dbService.user.findMany();
+  }
+}
+```
+
+3. In user.controller.ts add :
+
+```typescript
+import { Controller, Get } from '@nestjs/common';
+import { UserService } from './user.service';
+
+@Controller('user')
+export class UserController {
+  constructor(private userService: UserService) {}
+
+  @Get()
+  async users() {
+    return await this.userService.findAll();
+  }
+}
+```
+
+4. Testing in Postman :
+
+<img src="images/read_postman.png" width="60%">
+
+#### Create
+
+1. In user.service.ts add :
+
+```typescript
+async createUser(user: any) {
+	return await this.dbService.user.create({
+		data: user,
+	});
+}
+```
+
+2. In user.controller.ts add :
+
+```typescript
+@Post()
+async createUser(@Body() body) {
+	return await this.userService.createUser(body);
+}
+```
+
+3. Testing in Postman :
+
+   <img src="images/create_potman.png" width="60%">
+
+#### Update
+
+1. In user.service.ts add :
+
+````ts
+async updateData(id: number, data: any) {
+	return await this.dbService.user.update({
+		data,
+		where: {
+			id,
+		},
+	});
+}```
+2. In user.controller.ts add :
+```ts
+@UsePipes(ValidationPipe)
+@Patch('/:id')
+async updateUser(@Param('id', ParseIntPipe) id, @Body() body) {
+	return await this.userService.updateData(id, body);
+}
+````
+
+@UserPipes(ValidationPipe) is used to Parse an Integer from a String 3. Install class validator, and class transformer
+
+```cmd
+yarn add class-validator class-transformer
+```
+
+4. Testing in Postman :
+
+   <img src="images/update_postman.png" width="60%">
+
+#### Delete
+
+1. In user.service.ts add :
+
+```ts
+async deleteUser(id: number) {
+	return await this.dbService.user.delete({
+		where: {
+		id,
+		},
+	});
+}
+```
+
+2. in user.controller.ts add :
+
+```ts
+@Delete('/:id')
+async deteleUser(@Param('id', ParseIntPipe) id) {
+	return await this.userService.deleteUser(id);
+}
+```
+
+3. Testing in Postman :
+
+<img src="images/delete_postman.png" width="60%">
