@@ -239,3 +239,51 @@ async deteleUser(@Param('id', ParseIntPipe) id) {
 3. Testing in Postman :
 
 <img src="images/delete_postman.png" width="60%">
+
+### Validator :
+
+1. Create a dto Folder in the User Folder and create a file name create-user.dto.ts inside the dto Folder. Add code in the create-user.dto.ts file :
+
+```ts
+import { IsNotEmpty, IsString } from 'class-validator';
+
+export class CreateUserDto {
+  @IsString()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+}
+```
+
+2. Add the code program to the createUser function in the user.controller.ts file :
+
+```ts
+@UsePipes(ValidationPipe)
+@Post()
+async createUser(@Body() body: CreateUserDto) {
+	return await this.userService.createUser(body);
+}
+```
+
+3. Change the data type from any to CreateUserDto in the createUser function in the user.service.ts file :
+
+```ts
+async createUser(data: CreateUserDto) {
+	return await this.dbService.user.create({
+		data,
+	});
+}
+```
+
+4.  Testing in Postman :
+
+    If the email is empty :
+
+    <img src="images/email_empty_postman.png" width="60%">
+
+    If the name is empty :
+
+    <img src="images/name_empty_postman.png" width="60%">
